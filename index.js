@@ -1,24 +1,25 @@
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors");
-const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
-const reviewRoutes = require("./routes/reviews");
-const authRoutes = require("./routes/auth");
+const cors = require("cors");
+const { COOKIE_OPTIONS } = require("./config/jwt.config");
 
 const app = express();
 
-// Middleware
+// CORS setup for Vercel frontend
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.use(helmet());
-app.use(cookieParser(process.env.COOKIE_SECRET)); // For signed cookies
+
+// Other middleware
 app.use(express.json());
+app.use(cookieParser());
 
 // Connect to MongoDB
 mongoose
@@ -27,16 +28,20 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 // Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/reviews", reviewRoutes);
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/reviews", require("./routes/reviews"));
 
-// Basic error handling
+// Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: "Something broke!" });
+  res.status(500).json({
+    message: "Internal server error",
+    error:
+      process.env.NODE_ENV === "production" ? "An error occurred" : err.message,
+  });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });

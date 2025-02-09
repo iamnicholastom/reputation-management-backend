@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Review = require("../models/Review");
-const authMiddleware = require("../middleware/auth");
+const { authenticateToken } = require("../middleware/auth");
 
 // Public Routes (No Authentication Required)
 
@@ -31,7 +31,7 @@ router.get("/:id", async (req, res) => {
 // Protected Routes (Authentication Required)
 
 // Create a review
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/", authenticateToken, async (req, res) => {
   try {
     const review = new Review({
       ...req.body,
@@ -45,7 +45,7 @@ router.post("/", authMiddleware, async (req, res) => {
 });
 
 // Update a review
-router.put("/:id", authMiddleware, async (req, res) => {
+router.put("/:id", authenticateToken, async (req, res) => {
   try {
     // Optional: Add check to ensure user can only update their own reviews
     const review = await Review.findByIdAndUpdate(req.params.id, req.body, {
@@ -62,7 +62,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
 });
 
 // Delete a review
-router.delete("/:id", authMiddleware, async (req, res) => {
+router.delete("/:id", authenticateToken, async (req, res) => {
   try {
     // Optional: Add check to ensure user can only delete their own reviews
     const review = await Review.findByIdAndDelete(req.params.id);
