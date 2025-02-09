@@ -3,13 +3,21 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const helmet = require("helmet");
+const cookieParser = require("cookie-parser");
 const reviewRoutes = require("./routes/reviews");
+const authRoutes = require("./routes/auth");
 
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  })
+);
 app.use(helmet());
+app.use(cookieParser(process.env.COOKIE_SECRET)); // For signed cookies
 app.use(express.json());
 
 // Connect to MongoDB
@@ -19,6 +27,7 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 // Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/reviews", reviewRoutes);
 
 // Basic error handling

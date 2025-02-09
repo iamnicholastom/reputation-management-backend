@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const Review = require("../models/Review");
+const authMiddleware = require("../middleware/auth");
+
+// Public Routes (No Authentication Required)
 
 // Get all reviews
 router.get("/", async (req, res) => {
@@ -9,17 +12,6 @@ router.get("/", async (req, res) => {
     res.json(reviews);
   } catch (error) {
     res.status(500).json({ message: error.message });
-  }
-});
-
-// Create a review
-router.post("/", async (req, res) => {
-  try {
-    const review = new Review(req.body);
-    const savedReview = await review.save();
-    res.status(201).json(savedReview);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
   }
 });
 
@@ -36,9 +28,26 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Update a review
-router.put("/:id", async (req, res) => {
+// Protected Routes (Authentication Required)
+
+// Create a review
+router.post("/", authMiddleware, async (req, res) => {
   try {
+    const review = new Review({
+      ...req.body,
+      userId: req.user._id, // Optional: If you want to associate reviews with users
+    });
+    const savedReview = await review.save();
+    res.status(201).json(savedReview);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Update a review
+router.put("/:id", authMiddleware, async (req, res) => {
+  try {
+    // Optional: Add check to ensure user can only update their own reviews
     const review = await Review.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
@@ -53,8 +62,9 @@ router.put("/:id", async (req, res) => {
 });
 
 // Delete a review
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authMiddleware, async (req, res) => {
   try {
+    // Optional: Add check to ensure user can only delete their own reviews
     const review = await Review.findByIdAndDelete(req.params.id);
     if (!review) {
       return res.status(404).json({ message: "Review not found" });
