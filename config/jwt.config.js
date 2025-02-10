@@ -8,6 +8,7 @@ const COOKIE_OPTIONS = {
   secure: true,
   sameSite: "none",
   path: "/",
+  domain: process.env.COOKIE_DOMAIN,
 };
 
 module.exports = {
