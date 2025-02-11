@@ -3,7 +3,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const { COOKIE_OPTIONS } = require("./config/jwt.config");
 
 const app = express();
 
@@ -14,7 +13,7 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
-    exposedHeaders: ["Access-Control-Allow-Credentials"],
+    exposedHeaders: ["Set-Cookie", "Access-Control-Allow-Credentials"],
   })
 );
 
@@ -42,7 +41,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
