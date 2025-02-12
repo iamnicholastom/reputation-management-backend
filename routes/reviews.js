@@ -5,11 +5,30 @@ const { authenticateToken } = require("../middleware/auth");
 
 // Public Routes (No Authentication Required)
 
-// Get all reviews
+// Get paginated reviews
 router.get("/", async (req, res) => {
   try {
-    const reviews = await Review.find().sort({ createdAt: -1 });
-    res.json(reviews);
+    let { page = 1, limit = 10 } = req.query;
+
+    // Convert to numbers and ensure they are valid
+    page = Math.max(parseInt(page, 10), 1);
+    limit = Math.max(parseInt(limit, 10), 1);
+
+    const totalReviews = await Review.countDocuments();
+    const totalPages = Math.ceil(totalReviews / limit);
+
+    const reviews = await Review.find()
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json({
+      page,
+      limit,
+      totalReviews,
+      totalPages,
+      reviews,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
